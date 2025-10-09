@@ -1,0 +1,31 @@
+# Logs
+*.log
+*.txt
+error_log
+
+# Temporary files
+*.tmp
+*.temp
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# PHP
+vendor/
+composer.phar
+
+# Sensitive data
+*.key
+*.pem
+config.php
+
+# Backup files
+*.bak
+*.backup
