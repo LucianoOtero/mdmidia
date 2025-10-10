@@ -1,5 +1,33 @@
 {
+    "name": "luciano-otero/mdmidia",
+    "description": "Sistema de integração de leads para EspoCRM",
+    "version": "2.0.0",
+    "type": "project",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Luciano Otero",
+            "email": "luciano@mdmidia.com.br"
+        }
+    ],
     "require": {
+        "php": ">=7.4",
         "espocrm/php-espo-api-client": "^0.1.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^9.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "MDMidia\\": "src/"
+        }
+    },
+    "scripts": {
+        "test": "phpunit",
+        "validate": "php -l *.php"
+    },
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true
     }
 }

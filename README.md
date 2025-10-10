@@ -15,6 +15,12 @@ Este projeto contém endpoints PHP para receber webhooks de diferentes plataform
 - **Validação de dados**: Validação de CPF, placa e outros campos
 - **Logs detalhados**: Sistema de logging com timestamps
 - **Tratamento de erros**: Validação de métodos HTTP e dados
+- **Autoload PSR-4**: Estrutura organizada para melhor manutenção
+- **Testes automatizados**: Suporte a PHPUnit para testes unitários
+- **Deduplicação inteligente**: Prevenção automática de leads duplicados
+- **Segurança aprimorada**: Validação rigorosa e sanitização de dados
+- **Múltiplos métodos HTTP**: Suporte a GET e POST
+- **Respostas padronizadas**: JSON estruturado para todas as respostas
 
 ## 📁 Estrutura do Projeto
 
@@ -116,10 +122,8 @@ Os logs são salvos em arquivos `.txt` no diretório do projeto:
 
 ## 🔄 Versionamento
 
+- **v2.0.0**: Sistema completo com autoload PSR-4, testes automatizados e melhorias de segurança
 - **v1.0.0**: Versão inicial com integrações básicas
-- **v1.1.0**: Adicionado suporte ao LeadsGo
-- **v1.2.0**: Melhorias no tratamento de erros
-- **v1.3.0**: Sistema de logs com timestamps
 
 ## 👥 Contribuição
 
@@ -140,5 +144,5 @@ Para suporte técnico, entre em contato através dos logs do sistema ou abra uma
 ---
 
 **Desenvolvido por**: Luciano Otero  
-**Versão**: 1.0.0  
+**Versão**: 2.0.0  
 **Última atualização**: 09/10/2025
