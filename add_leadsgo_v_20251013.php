@@ -88,7 +88,7 @@ $client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 // Baseado na estrutura real dos dados recebidos
 $name = isset($data['nome_segurado']) ? $data['nome_segurado'] : '';
 $email = isset($data['email']) ? $data['email'] : '';
-$telefone = isset($data['telefone_celular']) ? $data['telefone_celular'] : '';
+$telefone = isset($data['telefone']) ? $data['telefone'] : '';
 $cep = isset($data['cep']) ? $data['cep'] : '';
 $cpf = isset($data['cpf_segurado']) ? $data['cpf_segurado'] : '';
 $marca = isset($data['marca']) ? $data['marca'] : '';
@@ -106,14 +106,6 @@ $sexo = isset($data['sexo']) ? $data['sexo'] : '';
 $uso = isset($data['uso']) ? $data['uso'] : '';
 $pernoite = isset($data['pernoite']) ? $data['pernoite'] : '';
 $webpage = 'leadsgo.online';
-$source = 'Baeta';
-
-// Novos campos do LeadsGo
-$seguradoraPref = isset($data['seguradora_preferencia']) ? $data['seguradora_preferencia'] : '';
-$valorPref = isset($data['valor_preferencia']) ? $data['valor_preferencia'] : '';
-$modalidade = isset($data['modalidade_seguro']) ? $data['modalidade_seguro'] : '';
-$seguradoraAnt = isset($data['seguradora_apolice']) ? $data['seguradora_apolice'] : '';
-$ciApol = isset($data['ci']) ? $data['ci'] : '';
 
 logWithTimestamp($logs, "Nome: " . $name);
 logWithTimestamp($logs, "Email: " . $email);
@@ -123,12 +115,6 @@ logWithTimestamp($logs, "Marca: " . $marca);
 logWithTimestamp($logs, "Modelo: " . $modelo);
 logWithTimestamp($logs, "Placa: " . $placa);
 logWithTimestamp($logs, "Ano: " . $ano);
-logWithTimestamp($logs, "Source: " . $source);
-logWithTimestamp($logs, "Seguradora Preferida: " . $seguradoraPref);
-logWithTimestamp($logs, "Valor Preferencial: " . $valorPref);
-logWithTimestamp($logs, "Modalidade: " . $modalidade);
-logWithTimestamp($logs, "Seguradora Anterior: " . $seguradoraAnt);
-logWithTimestamp($logs, "CI Apólice: " . $ciApol);
 
 // Envia os dados para o EspoCRM
 // Usando apenas campos básicos que sabemos que existem
@@ -147,12 +133,6 @@ try {
         'cPlaca' => $placa,
         'cAnoMod' => $ano,
         'cWebpage' => $webpage,
-        'source' => $source,
-        'cSegpref' => $seguradoraPref,
-        'cValorpret' => $valorPref,
-        'cModalidade' => $modalidade,
-        'cSegant' => $seguradoraAnt,
-        'cCiapol' => $ciApol,
     ]);
     
     logWithTimestamp($logs, "Resposta: " . implode(',' ,$response));

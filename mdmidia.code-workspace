@@ -4,5 +4,51 @@
 			"path": "."
 		}
 	],
-	"settings": {}
+	"settings": {
+		"php.validate.executablePath": "php",
+		"php.suggest.basic": false,
+		"files.associations": {
+			"*.php": "php"
+		},
+		"terminal.integrated.cwd": "${workspaceFolder}",
+		"terminal.integrated.defaultProfile.windows": "PowerShell",
+		"editor.formatOnSave": true,
+		"editor.insertSpaces": true,
+		"editor.tabSize": 4,
+		"files.exclude": {
+			"**/*.log": true,
+			"**/*.txt": true,
+			"**/vendor/": true,
+			"**/node_modules/": true
+		},
+		"search.exclude": {
+			"**/*.log": true,
+			"**/vendor/": true,
+			"**/node_modules/": true
+		}
+	},
+	"extensions": {
+		"recommendations": [
+			"bmewburn.vscode-intelephense-client",
+			"xdebug.php-debug",
+			"ms-vscode.powershell",
+			"bradlc.vscode-tailwindcss",
+			"formulahendry.auto-rename-tag",
+			"ms-vscode.vscode-json"
+		]
+	},
+	"launch": {
+		"version": "0.2.0",
+		"configurations": [
+			{
+				"name": "Listen for Xdebug",
+				"type": "php",
+				"request": "launch",
+				"port": 9003,
+				"pathMappings": {
+					"/var/www/html": "${workspaceFolder}"
+				}
+			}
+		]
+	}
 }
