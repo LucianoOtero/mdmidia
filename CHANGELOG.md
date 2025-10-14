@@ -5,6 +5,24 @@ Todas as mudanças notáveis neste projeto serão documentadas neste arquivo.
 O formato é baseado em [Keep a Changelog](https://keepachangelog.com/pt-BR/1.0.0/),
 e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR/).
 
+## [2.1.0] - 2025-10-14
+
+### Adicionado
+- Campo `source` padronizado em todos os endpoints
+- `add_collect_chat.php` agora inclui `source = 'Collect Chat'`
+- `add_travelangels.php` agora inclui `source = 'Site'`
+- Logs detalhados do campo source para debugging
+- Arquivo de teste `test_source_v5.php` para validação
+
+### Modificado
+- Payload do EspoCRM atualizado com campo `source` em todos os endpoints
+- Logs aprimorados para incluir informações do campo source
+- Padronização da origem dos leads para melhor rastreabilidade
+
+### Corrigido
+- Inconsistência na identificação da origem dos leads
+- Falta de campo `source` nos endpoints Collect Chat e TravelAngels
+
 ## [2.0.0] - 2025-10-09
 
 ### Adicionado
