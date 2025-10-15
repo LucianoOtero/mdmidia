@@ -1,18 +1,50 @@
 <?php
 require_once('class.php');
+
+// Função para log com timestamp
+function logWithTimestamp($logs, $message)
+{
+    $timestamp = date('Y-m-d H:i:s');
+    fwrite($logs, "[$timestamp] $message" . PHP_EOL);
+}
+
+// Função para buscar lead por email
+function findLeadByEmail($email, $client, $logs)
+{
+    try {
+        $leads = $client->request('GET', 'Lead', [
+            'where' => [
+                'emailAddress' => $email
+            ],
+            'maxSize' => 1
+        ]);
+
+        if (isset($leads['list']) && count($leads['list']) > 0) {
+            logWithTimestamp($logs, "Lead encontrado por email: " . $leads['list'][0]['id']);
+            return $leads['list'][0];
+        }
+        logWithTimestamp($logs, "Nenhum lead encontrado para o email: " . $email);
+        return null;
+    } catch (Exception $e) {
+        logWithTimestamp($logs, "Erro ao buscar lead por email: " . $e->getMessage());
+        return null;
+    }
+}
+
 $json = file_get_contents('php://input');
 $logs = fopen("logs_travelangels.txt", "a");
-fwrite($logs, "Recebido do Webflow: " . $json . PHP_EOL);
+logWithTimestamp($logs, "=== INÍCIO PROCESSAMENTO TRAVELANGELS V9 ===");
+logWithTimestamp($logs, "Recebido do Webflow: " . $json);
 
 $data = json_decode($json, true);
-fwrite($logs, "Transformado em PHP Object: " . implode(';', $data) . PHP_EOL);
+logWithTimestamp($logs, "Transformado em PHP Object: " . implode(';', $data));
 
 $client = new EspoApiClient('https://travelangels.com.br');
 $client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 
-// Cliente para FlyingDonkeys
+// Cliente para FlyingDonkeys (V7 completa)
 $clientFlyingDonkeys = new EspoApiClient('https://flyingdonkeys.com.br');
-$clientFlyingDonkeys->setApiKey('7a6c08d438ee131971f561fd836b5e15');
+$clientFlyingDonkeys->setApiKey('82d5f667f3a65a9a43341a0705be2b0c');
 
 // Mapeamento correto dos campos recebidos
 $name = isset($data['nome']) ? $data['nome'] : '';
@@ -31,9 +63,10 @@ $veiculo = isset($data['veiculo']) ? $data['veiculo'] : '';
 $webpage = 'mdmidia.com.br';
 $source = 'Site';
 
-fwrite($logs, "Telefone recebido: " . $telefone . PHP_EOL);
-fwrite($logs, "Nome: " . $name . PHP_EOL);
-fwrite($logs, "Source: " . $source . PHP_EOL);
+logWithTimestamp($logs, "Telefone recebido: " . $telefone);
+logWithTimestamp($logs, "Nome: " . $name);
+logWithTimestamp($logs, "Email: " . $email);
+logWithTimestamp($logs, "Source: " . $source);
 
 // Payload comum para ambos os sistemas
 $payload = [
@@ -54,24 +87,132 @@ $payload = [
     'source' => $source,
 ];
 
-// Envio para TravelAngels
+$leadIdTravelAngels = null;
+$leadIdFlyingDonkeys = null;
+
+// ===== PROCESSAMENTO TRAVELANGELS (MANTIDO COMO ESTÁ) =====
+logWithTimestamp($logs, "--- PROCESSANDO TRAVELANGELS ---");
+
+// Envio para TravelAngels (lógica original mantida)
 try {
     $responseTravelAngels = $client->request('POST', 'Lead', $payload);
-    fwrite($logs, "TravelAngels - Resposta: " . implode(',', $responseTravelAngels) . PHP_EOL);
+    $leadIdTravelAngels = $responseTravelAngels['id'];
+    logWithTimestamp($logs, "TravelAngels - Lead criado com sucesso: " . $leadIdTravelAngels);
 } catch (Exception $e) {
-    fwrite($logs, "TravelAngels - Erro: " . $e->getMessage() . PHP_EOL);
+    logWithTimestamp($logs, "TravelAngels - Erro: " . $e->getMessage());
 }
 
-// Envio para FlyingDonkeys
+// ===== PROCESSAMENTO FLYINGDONKEYS (LÓGICA V7 COMPLETA) =====
+logWithTimestamp($logs, "--- PROCESSANDO FLYINGDONKEYS V7 ---");
+
+// Tentar criar lead no FlyingDonkeys
 try {
     $responseFlyingDonkeys = $clientFlyingDonkeys->request('POST', 'Lead', $payload);
-    fwrite($logs, "FlyingDonkeys - Resposta: " . implode(',', $responseFlyingDonkeys) . PHP_EOL);
+    $leadIdFlyingDonkeys = $responseFlyingDonkeys['id'];
+    logWithTimestamp($logs, "FlyingDonkeys - Lead criado com sucesso: " . $leadIdFlyingDonkeys);
 } catch (Exception $e) {
-    fwrite($logs, "FlyingDonkeys - Erro: " . $e->getMessage() . PHP_EOL);
+    $errorMessage = $e->getMessage();
+    logWithTimestamp($logs, "FlyingDonkeys - Exceção capturada: " . $errorMessage);
+
+    // Se erro 409 (duplicata) ou se a resposta contém dados do lead (EspoCRM retorna lead existente como "erro")
+    if (
+        strpos($errorMessage, '409') !== false || strpos($errorMessage, 'duplicate') !== false ||
+        (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false)
+    ) {
+
+        logWithTimestamp($logs, "FlyingDonkeys - Lead duplicado detectado - buscando por email: " . $email);
+
+        $existingLead = findLeadByEmail($email, $clientFlyingDonkeys, $logs);
+        if ($existingLead) {
+            logWithTimestamp($logs, "FlyingDonkeys - Lead encontrado - atualizando: " . $existingLead['id']);
+
+            // Atualizar lead existente
+            $updateResponse = $clientFlyingDonkeys->request('PATCH', 'Lead/' . $existingLead['id'], $payload);
+            logWithTimestamp($logs, "FlyingDonkeys - Lead atualizado com sucesso");
+            $leadIdFlyingDonkeys = $existingLead['id'];
+        } else {
+            // Se não encontrou por email, mas a resposta contém dados do lead, usar esses dados
+            if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
+                $leadData = json_decode($errorMessage, true);
+                if (isset($leadData[0]['id'])) {
+                    logWithTimestamp($logs, "FlyingDonkeys - Usando lead existente da resposta: " . $leadData[0]['id']);
+                    $leadIdFlyingDonkeys = $leadData[0]['id'];
+                } else {
+                    logWithTimestamp($logs, "FlyingDonkeys - Erro: Lead duplicado mas não encontrado por email");
+                    throw $e;
+                }
+            } else {
+                logWithTimestamp($logs, "FlyingDonkeys - Erro: Lead duplicado mas não encontrado por email");
+                throw $e;
+            }
+        }
+    } else {
+        logWithTimestamp($logs, "FlyingDonkeys - Erro real na criação do lead: " . $errorMessage);
+        throw $e;
+    }
 }
-fwrite($logs, "Terminou" . PHP_EOL . "---" . PHP_EOL);
+
+// Tentar criar oportunidade no FlyingDonkeys
+if ($leadIdFlyingDonkeys) {
+    try {
+        $opportunityPayload = [
+            'name' => $name,
+            'leadId' => $leadIdFlyingDonkeys,
+            'stage' => 'Novo Sem Contato',
+            'amount' => 0,
+            'probability' => 10,
+
+            // Campos do lead mapeados para oportunidade
+            'cAnoFab' => $ano,
+            'cAnoMod' => $ano,
+            'cCEP' => $cep,
+            'cCelular' => $telefone,
+            'cCpftext' => $cpf,
+            'cGclid' => $gclid,
+            'cMarca' => $marca,
+            'cPlaca' => $placa,
+            'cWebpage' => $webpage,
+            'cEmail' => $email,
+            'cEmailAdress' => $email,
+            'source' => $source,
+
+            // Campos adicionais do workflow
+            'cSegpref' => isset($data['seguradora_preferencia']) ? $data['seguradora_preferencia'] : '',
+            'cValorpret' => isset($data['valor_preferencia']) ? $data['valor_preferencia'] : '',
+            'cModalidade' => isset($data['modalidade_seguro']) ? $data['modalidade_seguro'] : '',
+            'cSegant' => isset($data['seguradora_apolice']) ? $data['seguradora_apolice'] : '',
+            'cCiapol' => isset($data['ci']) ? $data['ci'] : '',
+        ];
+
+        $responseOpportunity = $clientFlyingDonkeys->request('POST', 'Opportunity', $opportunityPayload);
+        logWithTimestamp($logs, "FlyingDonkeys - Oportunidade criada com sucesso: " . $responseOpportunity['id']);
+    } catch (Exception $e) {
+        $errorMessage = $e->getMessage();
+        logWithTimestamp($logs, "FlyingDonkeys - Exceção oportunidade: " . $errorMessage);
+
+        // Se erro 409 (duplicata), criar nova oportunidade com duplicate = yes
+        if (strpos($errorMessage, '409') !== false || strpos($errorMessage, 'duplicate') !== false) {
+            logWithTimestamp($logs, "FlyingDonkeys - Oportunidade duplicada detectada - criando nova com duplicate = yes");
+
+            $opportunityPayload['duplicate'] = 'yes';
+            $responseOpportunity = $clientFlyingDonkeys->request('POST', 'Opportunity', $opportunityPayload);
+            logWithTimestamp($logs, "FlyingDonkeys - Nova oportunidade criada com duplicate = yes: " . $responseOpportunity['id']);
+        } else {
+            logWithTimestamp($logs, "FlyingDonkeys - Erro real na criação da oportunidade: " . $errorMessage);
+        }
+    }
+}
+
+logWithTimestamp($logs, "=== FIM PROCESSAMENTO TRAVELANGELS V9 ===");
+logWithTimestamp($logs, "Terminou");
+logWithTimestamp($logs, "---");
 fclose($logs);
 
 // Retorna resposta de sucesso para o webhook
 http_response_code(200);
-echo json_encode(['status' => 'success', 'message' => 'Lead inserido com sucesso no TravelAngels e FlyingDonkeys']);
+echo json_encode([
+    'status' => 'success',
+    'message' => 'Lead processado no TravelAngels e FlyingDonkeys com sucesso',
+    'leadIdTravelAngels' => $leadIdTravelAngels,
+    'leadIdFlyingDonkeys' => $leadIdFlyingDonkeys
+]);

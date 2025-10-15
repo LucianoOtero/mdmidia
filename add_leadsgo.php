@@ -9,7 +9,8 @@ $method = $_SERVER['REQUEST_METHOD'];
 $logs = fopen("logs_leadsgo.txt", "a");
 
 // Função para log com timestamp
-function logWithTimestamp($logs, $message) {
+function logWithTimestamp($logs, $message)
+{
     $timestamp = date('Y-m-d H:i:s');
     fwrite($logs, "[$timestamp] $message" . PHP_EOL);
 }
@@ -30,7 +31,7 @@ if ($method === 'POST') {
     fclose($logs);
     http_response_code(405); // Method Not Allowed
     echo json_encode([
-        'status' => 'error', 
+        'status' => 'error',
         'message' => 'Method not allowed. Use GET or POST method.',
         'received_method' => $method,
         'expected_methods' => ['GET', 'POST']
@@ -44,7 +45,7 @@ if (empty($json)) {
     fclose($logs);
     http_response_code(400); // Bad Request
     echo json_encode([
-        'status' => 'error', 
+        'status' => 'error',
         'message' => 'No data received. Please send JSON data.',
         'method' => $method,
         'content_type' => $_SERVER['CONTENT_TYPE'] ?? 'not_set'
@@ -70,7 +71,7 @@ if (!$data) {
     fclose($logs);
     http_response_code(400);
     echo json_encode([
-        'status' => 'error', 
+        'status' => 'error',
         'message' => 'Invalid JSON format',
         'json_error' => json_last_error_msg(),
         'received_data' => $json
@@ -78,14 +79,18 @@ if (!$data) {
     exit;
 }
 
-logWithTimestamp($logs, "Transformado em PHP Object: " . implode(';' ,$data));
+logWithTimestamp($logs, "Transformado em PHP Object: " . implode(';', $data));
 
 // Configuração dos clientes EspoCRM
 $client = new EspoApiClient('https://travelangels.com.br');
-$client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
+$client->setApiKey('d5bcb42f62d1d96f8090a1002b792335');
 
 $clientFlyingDonkeys = new EspoApiClient('https://flyingdonkeys.com.br');
-$clientFlyingDonkeys->setApiKey('7a6c08d438ee131971f561fd836b5e15');
+$clientFlyingDonkeys->setApiKey('82d5f667f3a65a9a43341a0705be2b0c');
+
+// Variáveis para capturar IDs dos leads
+$leadIdTravelAngels = null;
+$leadIdFlyingDonkeys = null;
 
 // Mapeamento dos dados do leadsgo.online
 // Baseado na estrutura real dos dados recebidos
@@ -159,14 +164,16 @@ $payload = [
 // Envia os dados para o TravelAngels EspoCRM
 try {
     $responseTravelAngels = $client->request('POST', 'Lead', $payload);
-    logWithTimestamp($logs, "TravelAngels - Resposta: " . implode(',', $responseTravelAngels));
+    $leadIdTravelAngels = $responseTravelAngels['id']; // Captura o ID
+    logWithTimestamp($logs, "TravelAngels - Lead criado com sucesso: " . $leadIdTravelAngels);
 } catch (Exception $e) {
     $errorMessage = $e->getMessage();
     logWithTimestamp($logs, "TravelAngels - Exceção capturada: " . $errorMessage);
-    
+
     if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
         logWithTimestamp($logs, "TravelAngels - Lead criado com sucesso (via exceção)");
         $responseTravelAngels = json_decode($errorMessage, true);
+        $leadIdTravelAngels = $responseTravelAngels['id']; // Captura o ID mesmo via exceção
     } else {
         logWithTimestamp($logs, "TravelAngels - Erro real: " . $errorMessage);
     }
@@ -175,23 +182,109 @@ try {
 // Envia os dados para o FlyingDonkeys EspoCRM
 try {
     $responseFlyingDonkeys = $clientFlyingDonkeys->request('POST', 'Lead', $payload);
-    logWithTimestamp($logs, "FlyingDonkeys - Resposta: " . implode(',', $responseFlyingDonkeys));
+    $leadIdFlyingDonkeys = $responseFlyingDonkeys['id'];
+    logWithTimestamp($logs, "FlyingDonkeys - Lead criado com sucesso: " . $leadIdFlyingDonkeys);
 } catch (Exception $e) {
     $errorMessage = $e->getMessage();
     logWithTimestamp($logs, "FlyingDonkeys - Exceção capturada: " . $errorMessage);
-    
-    if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
-        logWithTimestamp($logs, "FlyingDonkeys - Lead criado com sucesso (via exceção)");
-        $responseFlyingDonkeys = json_decode($errorMessage, true);
+
+    // Se erro 409 (duplicata) ou se a resposta contém dados do lead (EspoCRM retorna lead existente como "erro")
+    if (
+        strpos($errorMessage, '409') !== false || strpos($errorMessage, 'duplicate') !== false ||
+        (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false)
+    ) {
+
+        logWithTimestamp($logs, "FlyingDonkeys - Lead duplicado detectado - buscando por email: " . $email);
+
+        $existingLead = findLeadByEmail($email, $clientFlyingDonkeys, $logs);
+        if ($existingLead) {
+            logWithTimestamp($logs, "FlyingDonkeys - Lead encontrado - atualizando: " . $existingLead['id']);
+
+            // Atualizar lead existente
+            $updateResponse = $clientFlyingDonkeys->request('PATCH', 'Lead/' . $existingLead['id'], $payload);
+            logWithTimestamp($logs, "FlyingDonkeys - Lead atualizado com sucesso");
+            $leadIdFlyingDonkeys = $existingLead['id'];
+        } else {
+            // Se não encontrou por email, mas a resposta contém dados do lead, usar esses dados
+            if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
+                $leadData = json_decode($errorMessage, true);
+                if (isset($leadData[0]['id'])) {
+                    logWithTimestamp($logs, "FlyingDonkeys - Usando lead existente da resposta: " . $leadData[0]['id']);
+                    $leadIdFlyingDonkeys = $leadData[0]['id'];
+                } else {
+                    logWithTimestamp($logs, "FlyingDonkeys - Erro: Lead duplicado mas não encontrado por email");
+                    throw $e;
+                }
+            } else {
+                logWithTimestamp($logs, "FlyingDonkeys - Erro: Lead duplicado mas não encontrado por email");
+                throw $e;
+            }
+        }
     } else {
-        logWithTimestamp($logs, "FlyingDonkeys - Erro real: " . $errorMessage);
+        logWithTimestamp($logs, "FlyingDonkeys - Erro real na criação do lead: " . $errorMessage);
+        throw $e;
     }
 }
+
+// Tentar criar oportunidade no FlyingDonkeys
+if ($leadIdFlyingDonkeys) {
+    try {
+        $opportunityPayload = [
+            'name' => $name,
+            'leadId' => $leadIdFlyingDonkeys,
+            'stage' => 'Novo Sem Contato',
+            'amount' => 0,
+            'probability' => 10,
+
+            // Campos do lead mapeados para oportunidade (adaptados para LeadsGo)
+            'cAnoFab' => $ano,
+            'cAnoMod' => $ano,
+            'cCEP' => $cep,
+            'cCelular' => $telefone,
+            'cCpftext' => $cpf,
+            'cMarca' => $marca,
+            'cPlaca' => $placa,
+            'cWebpage' => $webpage,
+            'cEmail' => $email,
+            'cEmailAdress' => $email,
+            'source' => $source,
+
+            // Campos específicos do LeadsGo
+            'cSegpref' => $seguradoraPref,
+            'cValorpret' => $valorPref,
+            'cModalidade' => $modalidade,
+            'cSegant' => $seguradoraAnt,
+            'cCiapol' => $ciApol,
+        ];
+
+        $responseOpportunity = $clientFlyingDonkeys->request('POST', 'Opportunity', $opportunityPayload);
+        logWithTimestamp($logs, "FlyingDonkeys - Oportunidade criada com sucesso: " . $responseOpportunity['id']);
+    } catch (Exception $e) {
+        $errorMessage = $e->getMessage();
+        logWithTimestamp($logs, "FlyingDonkeys - Exceção oportunidade: " . $errorMessage);
+
+        // Se erro 409 (duplicata), criar nova oportunidade com duplicate = yes
+        if (strpos($errorMessage, '409') !== false || strpos($errorMessage, 'duplicate') !== false) {
+            logWithTimestamp($logs, "FlyingDonkeys - Oportunidade duplicada detectada - criando nova com duplicate = yes");
+
+            $opportunityPayload['duplicate'] = 'yes';
+            $responseOpportunity = $clientFlyingDonkeys->request('POST', 'Opportunity', $opportunityPayload);
+            logWithTimestamp($logs, "FlyingDonkeys - Nova oportunidade criada com duplicate = yes: " . $responseOpportunity['id']);
+        } else {
+            logWithTimestamp($logs, "FlyingDonkeys - Erro real na criação da oportunidade: " . $errorMessage);
+        }
+    }
+}
+
 logWithTimestamp($logs, "Terminou");
 logWithTimestamp($logs, "---");
 fclose($logs);
 
 // Retorna resposta de sucesso para o webhook
 http_response_code(200);
-echo json_encode(['status' => 'success', 'message' => 'Lead inserido com sucesso no TravelAngels e FlyingDonkeys']);
-?>
+echo json_encode([
+    'status' => 'success',
+    'message' => 'Lead inserido com sucesso no TravelAngels e FlyingDonkeys',
+    'leadIdTravelAngels' => $leadIdTravelAngels,
+    'leadIdFlyingDonkeys' => $leadIdFlyingDonkeys
+]);
