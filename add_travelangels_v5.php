@@ -14,24 +14,32 @@ $client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 $clientFlyingDonkeys = new EspoApiClient('https://flyingdonkeys.com.br');
 $clientFlyingDonkeys->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 
-// Mapeamento correto dos campos recebidos
-$name = isset($data['nome']) ? $data['nome'] : '';
-$telefone = isset($data['telefone']) ? $data['telefone'] : '';
-$email = isset($data['email']) ? $data['email'] : '';
-$cep = isset($data['cep']) ? $data['cep'] : '';
-$cpf = isset($data['cpf']) ? $data['cpf'] : '';
-$marca = isset($data['marca']) ? $data['marca'] : '';
-$placa = isset($data['placa']) ? $data['placa'] : '';
-$ano = isset($data['ano']) ? $data['ano'] : '';
-$gclid = isset($data['gclid']) ? $data['gclid'] : '';
-$endereco = isset($data['endereco']) ? $data['endereco'] : '';
-$cidade = isset($data['cidade']) ? $data['cidade'] : '';
-$estado = isset($data['estado']) ? $data['estado'] : '';
-$veiculo = isset($data['veiculo']) ? $data['veiculo'] : '';
-$webpage = 'mdmidia.com.br';
+$name = $data['data']['NOME'];
+$dddCel = $data['data']['DDD-CELULAR'];
+$cel = $data['data']['CELULAR'];
+$email = $data['data']['Email'];
+$cep = $data['data']['CEP'];
+$cpf = $data['data']['CPF'];
+$marca = $data['data']['MARCA'];
+$placa = $data['data']['PLACA'];
+$ano = $data['data']['ANO'];
+$gclid = $data['data']['GCLID_FLD'];
+$date = $data['d'];
+$webpage = $data['name'];
 $source = 'Site';
 
-fwrite($logs, "Telefone recebido: " . $telefone . PHP_EOL);
+fwrite($logs, "DDDs antes da checagem de digitos: " . $dddCel . ";" . $dddTel . PHP_EOL);
+
+if (strlen($dddCel) == 3) {
+    $dddCel = substr($dddCel, 1);
+};
+
+if (strlen($dddTel) == 3) {
+    $dddTel = substr($dddTel, 1);
+};
+fwrite($logs, "DDDs apos da checagem de digitos: " . $dddCel . ";" . $dddTel . PHP_EOL);
+$cel = $dddCel . $cel;
+fwrite($logs, "Telefone apos colocar ddd: " . $cel . ";" . $tel . PHP_EOL);
 fwrite($logs, "Nome: " . $name . PHP_EOL);
 fwrite($logs, "Source: " . $source . PHP_EOL);
 
@@ -39,12 +47,8 @@ fwrite($logs, "Source: " . $source . PHP_EOL);
 $payload = [
     'firstName' => $name,
     'emailAddress' => $email,
-    'cCelular' => $telefone,
+    'cCelular' => $cel,
     'addressPostalCode' => $cep,
-    'addressCity' => $cidade,
-    'addressState' => $estado,
-    'addressCountry' => 'Brasil',
-    'addressStreet' => $endereco,
     'cCpftext' => $cpf,
     'cMarca' => $marca,
     'cPlaca' => $placa,
@@ -71,7 +75,3 @@ try {
 }
 fwrite($logs, "Terminou" . PHP_EOL . "---" . PHP_EOL);
 fclose($logs);
-
-// Retorna resposta de sucesso para o webhook
-http_response_code(200);
-echo json_encode(['status' => 'success', 'message' => 'Lead inserido com sucesso no TravelAngels e FlyingDonkeys']);

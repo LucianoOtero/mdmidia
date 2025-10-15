@@ -80,12 +80,9 @@ if (!$data) {
 
 logWithTimestamp($logs, "Transformado em PHP Object: " . implode(';' ,$data));
 
-// Configuração dos clientes EspoCRM
+// Configuração do cliente EspoCRM
 $client = new EspoApiClient('https://travelangels.com.br');
 $client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
-
-$clientFlyingDonkeys = new EspoApiClient('https://flyingdonkeys.com.br');
-$clientFlyingDonkeys->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 
 // Mapeamento dos dados do leadsgo.online
 // Baseado na estrutura real dos dados recebidos
@@ -133,58 +130,44 @@ logWithTimestamp($logs, "Modalidade: " . $modalidade);
 logWithTimestamp($logs, "Seguradora Anterior: " . $seguradoraAnt);
 logWithTimestamp($logs, "CI Apólice: " . $ciApol);
 
-// Cria o payload comum para ambos os sistemas
-$payload = [
-    'firstName' => $name,
-    'emailAddress' => $email,
-    'cCelular' => $telefone,
-    'addressPostalCode' => $cep,
-    'addressCity' => $cidade,
-    'addressState' => $estado,
-    'addressCountry' => 'Brasil',
-    'addressStreet' => $endereco . ', ' . $numero,
-    'cCpftext' => $cpf,
-    'cMarca' => $marca,
-    'cPlaca' => $placa,
-    'cAnoMod' => $ano,
-    'cWebpage' => $webpage,
-    'source' => $source,
-    'cSegpref' => $seguradoraPref,
-    'cValorpret' => $valorPref,
-    'cModalidade' => $modalidade,
-    'cSegant' => $seguradoraAnt,
-    'cCiapol' => $ciApol,
-];
-
-// Envia os dados para o TravelAngels EspoCRM
+// Envia os dados para o EspoCRM
+// Usando apenas campos básicos que sabemos que existem
 try {
-    $responseTravelAngels = $client->request('POST', 'Lead', $payload);
-    logWithTimestamp($logs, "TravelAngels - Resposta: " . implode(',', $responseTravelAngels));
-} catch (Exception $e) {
-    $errorMessage = $e->getMessage();
-    logWithTimestamp($logs, "TravelAngels - Exceção capturada: " . $errorMessage);
+    $response = $client->request('POST', 'Lead', [
+        'firstName' => $name,
+        'emailAddress' => $email,
+        'cCelular' => $telefone,
+        'addressPostalCode' => $cep,
+        'addressCity' => $cidade,
+        'addressState' => $estado,
+        'addressCountry' => 'Brasil',
+        'addressStreet' => $endereco . ', ' . $numero,
+        'cCpftext' => $cpf,
+        'cMarca' => $marca,
+        'cPlaca' => $placa,
+        'cAnoMod' => $ano,
+        'cWebpage' => $webpage,
+        'source' => $source,
+        'cSegpref' => $seguradoraPref,
+        'cValorpret' => $valorPref,
+        'cModalidade' => $modalidade,
+        'cSegant' => $seguradoraAnt,
+        'cCiapol' => $ciApol,
+    ]);
     
-    if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
-        logWithTimestamp($logs, "TravelAngels - Lead criado com sucesso (via exceção)");
-        $responseTravelAngels = json_decode($errorMessage, true);
-    } else {
-        logWithTimestamp($logs, "TravelAngels - Erro real: " . $errorMessage);
-    }
-}
-
-// Envia os dados para o FlyingDonkeys EspoCRM
-try {
-    $responseFlyingDonkeys = $clientFlyingDonkeys->request('POST', 'Lead', $payload);
-    logWithTimestamp($logs, "FlyingDonkeys - Resposta: " . implode(',', $responseFlyingDonkeys));
+    logWithTimestamp($logs, "Resposta: " . implode(',' ,$response));
 } catch (Exception $e) {
+    // Se a resposta do EspoCRM contém dados do lead, considera sucesso
     $errorMessage = $e->getMessage();
-    logWithTimestamp($logs, "FlyingDonkeys - Exceção capturada: " . $errorMessage);
+    logWithTimestamp($logs, "Exceção capturada: " . $errorMessage);
     
+    // Verifica se a mensagem de erro contém dados de um lead criado
     if (strpos($errorMessage, '"id":') !== false && strpos($errorMessage, '"name":') !== false) {
-        logWithTimestamp($logs, "FlyingDonkeys - Lead criado com sucesso (via exceção)");
-        $responseFlyingDonkeys = json_decode($errorMessage, true);
+        logWithTimestamp($logs, "Lead criado com sucesso (via exceção)");
+        $response = json_decode($errorMessage, true);
     } else {
-        logWithTimestamp($logs, "FlyingDonkeys - Erro real: " . $errorMessage);
+        logWithTimestamp($logs, "Erro real: " . $errorMessage);
+        throw $e;
     }
 }
 logWithTimestamp($logs, "Terminou");
@@ -193,5 +176,5 @@ fclose($logs);
 
 // Retorna resposta de sucesso para o webhook
 http_response_code(200);
-echo json_encode(['status' => 'success', 'message' => 'Lead inserido com sucesso no TravelAngels e FlyingDonkeys']);
+echo json_encode(['status' => 'success', 'message' => 'Lead inserido com sucesso']);
 ?>

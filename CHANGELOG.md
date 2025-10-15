@@ -8,6 +8,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ## [2.1.0] - 2025-10-14
 
 ### Adicionado
+
 - Campo `source` padronizado em todos os endpoints
 - `add_collect_chat.php` agora inclui `source = 'Collect Chat'`
 - `add_travelangels.php` agora inclui `source = 'Site'`
@@ -15,17 +16,20 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Arquivo de teste `test_source_v5.php` para validação
 
 ### Modificado
+
 - Payload do EspoCRM atualizado com campo `source` em todos os endpoints
 - Logs aprimorados para incluir informações do campo source
 - Padronização da origem dos leads para melhor rastreabilidade
 
 ### Corrigido
+
 - Inconsistência na identificação da origem dos leads
 - Falta de campo `source` nos endpoints Collect Chat e TravelAngels
 
 ## [2.0.0] - 2025-10-09
 
 ### Adicionado
+
 - Sistema de autoload PSR-4 para melhor organização do código
 - Suporte a PHPUnit para testes automatizados
 - Scripts de validação e teste no composer.json
@@ -45,6 +49,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
   - Webflow + Octadesk
 
 ### Alterado
+
 - Melhorado tratamento de exceções no cliente EspoCRM
 - Otimizado sistema de logs para melhor debugging
 - Aprimorada validação de CPF e placa
@@ -52,6 +57,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Atualizado sistema de mapeamento de dados
 
 ### Corrigido
+
 - Corrigido bug no `class.php` que causava exceções em respostas válidas do EspoCRM
 - Removido flag `forceDuplicate` para evitar duplicação de leads
 - Corrigido mapeamento de dados do LeadsGo
@@ -59,11 +65,13 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 - Corrigido parsing de dados JSON vazios
 
 ### Removido
+
 - Flag `forceDuplicate` de todos os endpoints
 - Dependências desnecessárias
 - Código obsoleto de tratamento de DDD
 
 ### Segurança
+
 - Validação rigorosa de dados de entrada
 - Sanitização de dados antes do envio ao EspoCRM
 - Validação de tipos de dados
@@ -72,6 +80,7 @@ e este projeto adere ao [Versionamento Semântico](https://semver.org/lang/pt-BR
 ## [1.0.0] - 2025-10-09
 
 ### Adicionado
+
 - Versão inicial do sistema de integração de leads
 - Endpoint básico para LeadsGo
 - Cliente EspoCRM API
