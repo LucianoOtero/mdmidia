@@ -1,5 +1,8 @@
 <?php
-
+/**
+ * Backup de add_collect_octa.php gerado em 2025-10-20 09:56:00
+ */
+<?php
 /**
  * add_collect_octa.php — Collect.chat -> Octadesk (send-template)
  *
@@ -25,8 +28,7 @@ $LOG_BACKUPS = 5;
 
 // ==================== SISTEMA DE LOG ====================
 
-function log_rotate_if_needed($file, $maxSize, $backups)
-{
+function log_rotate_if_needed($file, $maxSize, $backups) {
     if (!file_exists($file) || @filesize($file) < $maxSize) return;
     for ($i = $backups - 1; $i >= 1; $i--) {
         $src = $file . '.' . $i;
@@ -36,42 +38,39 @@ function log_rotate_if_needed($file, $maxSize, $backups)
     @rename($file, $file . '.1');
 }
 
-function mask_val($k, $v)
-{
+function mask_val($k, $v) {
     $kLow = strtolower($k);
     if (!is_string($v)) return $v;
-    if (str_contains($kLow, 'api') || str_contains($kLow, 'token') || str_contains($kLow, 'key')) return '***MASKED***';
-    if (str_contains($kLow, 'cpf')) {
-        $d = preg_replace('/\D+/', '', $v);
-        return (strlen($d) === 11) ? substr($d, 0, 3) . '.***.***-' . substr($d, -2) : '***MASKED***';
+    if (str_contains($kLow,'api') || str_contains($kLow,'token') || str_contains($kLow,'key')) return '***MASKED***';
+    if (str_contains($kLow,'cpf')) {
+        $d = preg_replace('/\D+/','',$v);
+        return (strlen($d)===11) ? substr($d,0,3).'.***.***-'.substr($d,-2) : '***MASKED***';
     }
-    if (str_contains($kLow, 'cep')) {
-        $d = preg_replace('/\D+/', '', $v);
-        return (strlen($d) === 8) ? substr($d, 0, 2) . '***-**' . substr($d, -1) : '***MASKED***';
+    if (str_contains($kLow,'cep')) {
+        $d = preg_replace('/\D+/','',$v);
+        return (strlen($d)===8) ? substr($d,0,2).'***-**'.substr($d,-1) : '***MASKED***';
     }
-    if (str_contains($kLow, 'placa')) {
-        $s = preg_replace('/[^A-Z0-9-]/i', '', $v);
-        return (strlen($s) >= 3) ? substr($s, 0, 3) . '-****' : '***MASKED***';
+    if (str_contains($kLow,'placa')) {
+        $s = preg_replace('/[^A-Z0-9-]/i','',$v);
+        return (strlen($s)>=3) ? substr($s,0,3).'-****' : '***MASKED***';
     }
-    if (str_contains($kLow, 'email')) {
+    if (str_contains($kLow,'email')) {
         $parts = explode('@', $v);
-        if (count($parts) === 2) {
-            $u = $parts[0];
-            $d = $parts[1];
-            $uMask = strlen($u) > 2 ? substr($u, 0, 1) . str_repeat('*', max(1, strlen($u) - 2)) . substr($u, -1) : '***';
+        if (count($parts)===2) {
+            $u = $parts[0]; $d = $parts[1];
+            $uMask = strlen($u)>2 ? substr($u,0,1) . str_repeat('*', max(1, strlen($u)-2)) . substr($u,-1) : '***';
             return $uMask . '@' . $d;
         }
         return '***MASKED***';
     }
-    if (str_contains($kLow, 'number') || str_contains($kLow, 'telefone') || str_contains($kLow, 'phone')) {
-        $d = preg_replace('/\D+/', '', $v);
-        return (strlen($d) > 4) ? substr($d, 0, 4) . str_repeat('*', max(0, strlen($d) - 6)) . substr($d, -2) : '***MASKED***';
+    if (str_contains($kLow,'number') || str_contains($kLow,'telefone') || str_contains($kLow,'phone')) {
+        $d = preg_replace('/\D+/','',$v);
+        return (strlen($d)>4) ? substr($d,0,4).str_repeat('*',max(0,strlen($d)-6)).substr($d,-2) : '***MASKED***';
     }
     return $v;
 }
 
-function log_step($title, $data = null)
-{
+function log_step($title, $data = null) {
     global $DEBUG_LOG_FILE, $MAX_LOG_SIZE, $LOG_BACKUPS;
     try {
         log_rotate_if_needed($DEBUG_LOG_FILE, $MAX_LOG_SIZE, $LOG_BACKUPS);
@@ -82,10 +81,8 @@ function log_step($title, $data = null)
         if ($data !== null) {
             if (is_array($data)) {
                 $safe = $data;
-                array_walk_recursive($safe, function (&$v, $k) {
-                    $v = mask_val($k, $v);
-                });
-                $line .= ' | ' . json_encode($safe, JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
+                array_walk_recursive($safe, function (&$v, $k) { $v = mask_val($k, $v); });
+                $line .= ' | ' . json_encode($safe, JSON_UNESCAPED_SLASHES|JSON_UNESCAPED_UNICODE);
             } else {
                 $line .= ' | ' . (string)$data;
             }
@@ -243,7 +240,7 @@ if ($response['success']) {
         'contact_id' => $contactId,
         'message' => 'Contato criado e mensagem enviada com sucesso'
     ]);
-
+    
     echo json_encode([
         'success' => true,
         'contact_id' => $contactId,
@@ -254,7 +251,7 @@ if ($response['success']) {
         'contact_id' => $contactId,
         'error' => $response['error']
     ]);
-
+    
     echo json_encode([
         'success' => false,
         'contact_id' => $contactId,
@@ -269,25 +266,24 @@ log_step('=== FIM DO PROCESSAMENTO ===');
 /**
  * Normaliza telefone para formato E.164 (+55...)
  */
-function normalizePhoneToE164($phone)
-{
+function normalizePhoneToE164($phone) {
     $digits = preg_replace('/\D/', '', $phone);
-
+    
     // Se já tem +55, retorna como está
     if (strpos($phone, '+55') === 0) {
         return $phone;
     }
-
+    
     // Se tem 11 dígitos (DDD + 9 dígitos), adiciona +55
     if (strlen($digits) == 11) {
         return '+55' . $digits;
     }
-
+    
     // Se tem 10 dígitos (DDD + 8 dígitos), adiciona +55
     if (strlen($digits) == 10) {
         return '+55' . $digits;
     }
-
+    
     // Se tem menos dígitos, assume que é incompleto
     return $phone;
 }
@@ -295,15 +291,14 @@ function normalizePhoneToE164($phone)
 /**
  * Normaliza telefone para formato local (DDD + linha, sem +55)
  */
-function normalizePhoneToLocal($phone)
-{
+function normalizePhoneToLocal($phone) {
     $digits = preg_replace('/\D/', '', $phone);
-
+    
     // Remove +55 se presente
     if (strpos($phone, '+55') === 0) {
         $digits = substr($digits, 2);
     }
-
+    
     // Retorna apenas os dígitos locais
     return $digits;
 }
@@ -311,29 +306,28 @@ function normalizePhoneToLocal($phone)
 /**
  * Função para criar/atualizar contato via API /contacts (igual ao add_webflow_octa)
  */
-function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = [])
-{
+function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []) {
     global $URL_CONTACTS, $OCTADESK_API_KEY;
-
+    
     log_step('upsertContactWithCF iniciado', [
         'localDigits' => $localDigits,
         'nome' => $nome,
         'email' => $email,
         'customObj' => $customObj
     ]);
-
+    
     // Buscar contato existente por telefone
     $id = findContactIdByPhoneLocal($localDigits);
-    if (!$id && $email) {
-        $id = findContactIdByEmail($email);
+    if (!$id && $email) { 
+        $id = findContactIdByEmail($email); 
     }
-
+    
     log_step('Contato encontrado', ['id' => $id, 'por_telefone' => !empty($localDigits), 'por_email' => !empty($email)]);
-
+    
     // Preparar payload base
     $payloadBase = ['name' => ($nome ?: 'Cliente')];
     if ($email) $payloadBase['email'] = trim(strtolower($email));
-
+    
     // Preparar custom fields
     if (!empty($customObj)) {
         $customFieldsArray = [];
@@ -342,11 +336,11 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
         }
         $payloadBase['customFields'] = $customFieldsArray;
     }
-
+    
     if ($id) {
         // Atualizar contato existente
         log_step('Atualizando contato existente', ['id' => $id, 'payload' => $payloadBase]);
-
+        
         $payload = $payloadBase;
         if (!empty($customObj)) {
             $customFieldsArray = [];
@@ -355,10 +349,10 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
             }
             $payload['customFields'] = $customFieldsArray;
         }
-
+        
         $response = octaRequest('PATCH', $URL_CONTACTS . '/' . urlencode($id), $payload);
         log_step('Resposta PATCH', $response);
-
+        
         if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
             log_step('Contato atualizado com sucesso', ['id' => $id]);
             return $id;
@@ -366,10 +360,10 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
         log_step('AVISO: PATCH falhou mas retornando ID', ['id' => $id, 'response' => $response]);
         return $id; // Retorna mesmo com erro
     }
-
+    
     // Criar novo contato
     log_step('Criando novo contato');
-
+    
     $payloadCreate = $payloadBase;
     if (!empty($customObj)) {
         $customFieldsArray = [];
@@ -378,7 +372,7 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
         }
         $payloadCreate['customFields'] = $customFieldsArray;
     }
-
+    
     // Adicionar phoneContacts
     if ($localDigits) {
         $payloadCreate['phoneContacts'] = [
@@ -389,30 +383,30 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
             ]
         ];
     }
-
+    
     log_step('Payload para criação', $payloadCreate);
-
+    
     $response = octaRequest('POST', $URL_CONTACTS, $payloadCreate);
     log_step('Resposta POST criação', $response);
-
+    
     $newId = null;
-
+    
     if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
         $jsonResponse = json_decode($response['body'], true);
         $newId = $jsonResponse['id'] ?? $jsonResponse['_id'] ?? null;
-
+        
         if ($newId) {
             log_step('Novo contato criado com sucesso', ['id' => $newId]);
             return $newId;
         }
     }
-
-    // 409 -> tratar como contato existente e prosseguir sem buscar
+    
+    // 409 por e-mail -> tratar como contato existente e prosseguir sem buscar
     if ($response['http_code'] == 409) {
         log_step('Contato existente (409) — pulando busca e prosseguindo para envio de mensagem');
         return 'existing';
     }
-
+    
     log_step('ERRO: Falha ao criar/atualizar contato', ['response' => $response]);
     return null;
 }
@@ -420,19 +414,18 @@ function upsertContactWithCF($localDigits, $nome, $email = null, $customObj = []
 /**
  * Busca ID do contato por telefone local
  */
-function findContactIdByPhoneLocal($localDigits)
-{
+function findContactIdByPhoneLocal($localDigits) {
     global $URL_CONTACTS, $OCTADESK_API_KEY;
-
+    
     if (empty($localDigits)) return null;
-
+    
     log_step('Buscando contato por telefone local', ['localDigits' => $localDigits]);
-
+    
     // Buscar por telefone local
     $response = octaRequest('GET', $URL_CONTACTS . '?phoneContact=' . urlencode($localDigits));
-
+    
     log_step('Resposta busca por telefone', $response);
-
+    
     if ($response['http_code'] == 200) {
         $jsonResponse = json_decode($response['body'], true);
         if (isset($jsonResponse[0]['id'])) {
@@ -440,7 +433,7 @@ function findContactIdByPhoneLocal($localDigits)
             return $jsonResponse[0]['id'];
         }
     }
-
+    
     log_step('Contato não encontrado por telefone');
     return null;
 }
@@ -448,19 +441,18 @@ function findContactIdByPhoneLocal($localDigits)
 /**
  * Busca ID do contato por email
  */
-function findContactIdByEmail($email)
-{
+function findContactIdByEmail($email) {
     global $URL_CONTACTS, $OCTADESK_API_KEY;
-
+    
     if (empty($email)) return null;
-
+    
     log_step('Buscando contato por email', ['email' => $email]);
-
+    
     // Buscar por email
     $response = octaRequest('GET', $URL_CONTACTS . '?email=' . urlencode($email));
-
+    
     log_step('Resposta busca por email', $response);
-
+    
     if ($response['http_code'] == 200) {
         $jsonResponse = json_decode($response['body'], true);
         if (isset($jsonResponse[0]['id'])) {
@@ -468,7 +460,7 @@ function findContactIdByEmail($email)
             return $jsonResponse[0]['id'];
         }
     }
-
+    
     log_step('Contato não encontrado por email');
     return null;
 }
@@ -476,21 +468,20 @@ function findContactIdByEmail($email)
 /**
  * Função para enviar mensagem via API send-template
  */
-function sendTemplateMessage($payload)
-{
+function sendTemplateMessage($payload) {
     global $URL_SEND_TPL, $OCTADESK_API_KEY;
-
+    
     log_step('Enviando mensagem via send-template', ['url' => $URL_SEND_TPL]);
-
+    
     $response = octaRequest('POST', $URL_SEND_TPL, $payload);
-
+    
     log_step('Resposta send-template', $response);
-
+    
     if ($response['http_code'] >= 200 && $response['http_code'] < 300) {
         return ['success' => true];
     } else {
         return [
-            'success' => false,
+            'success' => false, 
             'error' => 'HTTP ' . $response['http_code'] . ': ' . $response['body']
         ];
     }
@@ -499,22 +490,21 @@ function sendTemplateMessage($payload)
 /**
  * Função para fazer requisições para a API Octadesk
  */
-function octaRequest($method, $url, $body = null)
-{
+function octaRequest($method, $url, $body = null) {
     global $OCTADESK_API_KEY;
-
+    
     log_step('octaRequest', [
         'method' => $method,
         'url' => $url,
         'body' => $body
     ]);
-
+    
     $headers = [
         'accept: application/json',
         'content-type: application/json',
         "X-API-KEY: {$OCTADESK_API_KEY}"
     ];
-
+    
     $ch = curl_init();
     curl_setopt_array($ch, [
         CURLOPT_URL => $url,
@@ -526,22 +516,25 @@ function octaRequest($method, $url, $body = null)
         CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_TIMEOUT => 30
     ]);
-
+    
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $error = curl_error($ch);
-
+    
     curl_close($ch);
-
+    
     if ($error) {
         log_step('cURL Error', ['error' => $error]);
         return ['http_code' => 0, 'body' => 'cURL Error: ' . $error];
     }
-
+    
     log_step('Resposta API', [
         'http_code' => $httpCode,
         'body' => $response
     ]);
-
+    
     return ['http_code' => $httpCode, 'body' => $response];
 }
+?>
+
+
