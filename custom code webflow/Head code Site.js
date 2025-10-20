@@ -1,4 +1,4 @@
-<!-- ===== Google Tag Manager (primeiro no <head>) ===== -->
+< !-- ===== Google Tag Manager(primeiro no < head >) ===== -->
 <script>
 (function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
 new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
@@ -8,14 +8,17 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </script>
 <!-- ===== End Google Tag Manager ===== -->
 
+< !--Start cookieyes banner-- > <script id="cookieyes" type="text/javascript" src="https://cdn-cookieyes.com/client_data/00024cf4feacae5185c375f6/script.js"></script> <!--End cookieyes banner-- >
+
 <link rel="canonical" href="https://www.segurosimediato.com.br/" />
 
-<!-- Verificações Google -->
+<!--Verificações Google-- >
 <meta name="google-site-verification" content="7ExRewM8GII1bwZ73ZEBX9euCX9Sx5m8243ITCyx7cM" />
 <meta name="google-site-verification" content="OGCWNwHYOwmFiCvqJXojZvKRTGrh2P9hlXzrcKAeAao" />
 
-<!-- Metas de app / viewport / tema -->
-<meta name="apple-mobile-web-app-capable" content="yes" />
+<!--Metas de app / viewport / tema-- >
+
+<meta name="mobile-web-app-capable" content="yes"></meta>
 <meta name="viewport" content="width=device-width, maximum-scale=1" />
 <meta name="apple-mobile-web-app-title" content="Imediato Solucoes em Seguros" />
 <meta name="format-detection" content="telephone=no" />
@@ -46,7 +49,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
   .swal-text { text-align:center; }
 </style>
 
-<!-- BG dots -->
+<!--BG dots-- >
 <style>
 :root{ --dot-color: rgba(17, 24, 39, .07); --dot-size: 1px; --dot-gap: 10px; }
 .bg-dots{
@@ -58,7 +61,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 .bg-dots--dark{ background-color:#0b1220; --dot-color: rgba(255,255,255,.08); }
 </style>
 
-<!-- Blue grid -->
+<!--Blue grid-- >
 <style>
 :root{ --blue-base:#EAF4FF; --grid-color: rgba(17,24,39,.10); --grid-gap:14px; --grid-thickness:1px; }
 .blue-grid{
@@ -72,7 +75,7 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 @media (max-width:768px){ .blue-grid{ --grid-gap:16px; } }
 </style>
 
-<!-- Tech header effects -->
+<!--Tech header effects-- >
 <style>
 :root{
   --tech-bg-dark:#0b1220; --tech-bg-light:#EAF4FF;
@@ -125,11 +128,11 @@ j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
 </style>
 
 <!-- ===== IMPORTANTE =====
-1) NÃO carregar aqui: CookieYes, GA4, Google Ads, CollectChat, Mailchimp.
+  1) NÃO carregar aqui: CookieYes, GA4, Google Ads, CollectChat, Mailchimp.
    Todos eles devem ser inseridos via GTM com:
-   - CookieYes CMP em "Consent Initialization - All Pages"
-   - GA4: exigir analytics_storage
-   - Ads/Conversion/Linker: exigir ad_storage (+ ad_user_data/ad_personalization)
-   - CollectChat/Mailchimp: DOM Ready e respeitar consentimento
-2) Se precisar de libs não rastreadoras (ex.: lazysizes, sweetalert), prefira carregá-las via GTM também.
+- CookieYes CMP em "Consent Initialization - All Pages"
+  - GA4: exigir analytics_storage
+    - Ads / Conversion / Linker: exigir ad_storage(+ ad_user_data / ad_personalization)
+      - CollectChat / Mailchimp: DOM Ready e respeitar consentimento
+2) Se precisar de libs não rastreadoras(ex.: lazysizes, sweetalert), prefira carregá - las via GTM também.
 ===================================== -->
