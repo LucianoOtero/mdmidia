@@ -46,16 +46,18 @@ $client->setApiKey('7a6c08d438ee131971f561fd836b5e15');
 $clientFlyingDonkeys = new EspoApiClient('https://flyingdonkeys.com.br');
 $clientFlyingDonkeys->setApiKey('82d5f667f3a65a9a43341a0705be2b0c');
 
-// Mapeamento correto dos campos recebidos
-$name = isset($data['nome']) ? $data['nome'] : '';
-$telefone = isset($data['telefone']) ? $data['telefone'] : '';
-$email = isset($data['email']) ? $data['email'] : '';
-$cep = isset($data['cep']) ? $data['cep'] : '';
-$cpf = isset($data['cpf']) ? $data['cpf'] : '';
-$marca = isset($data['marca']) ? $data['marca'] : '';
-$placa = isset($data['placa']) ? $data['placa'] : '';
-$ano = isset($data['ano']) ? $data['ano'] : '';
-$gclid = isset($data['gclid']) ? $data['gclid'] : '';
+// Mapeamento adaptativo dos campos recebidos (suporta ambas estruturas)
+// Estrutura 1: campos diretos (formulário simples)
+// Estrutura 2: campos aninhados (Webflow)
+$name = isset($data['nome']) ? $data['nome'] : (isset($data['data']['NOME']) ? $data['data']['NOME'] : '');
+$telefone = isset($data['telefone']) ? $data['telefone'] : (isset($data['data']['DDD-CELULAR']) && isset($data['data']['CELULAR']) ? $data['data']['DDD-CELULAR'] . $data['data']['CELULAR'] : '');
+$email = isset($data['email']) ? $data['email'] : (isset($data['data']['Email']) ? $data['data']['Email'] : '');
+$cep = isset($data['cep']) ? $data['cep'] : (isset($data['data']['CEP']) ? $data['data']['CEP'] : '');
+$cpf = isset($data['cpf']) ? $data['cpf'] : (isset($data['data']['CPF']) ? $data['data']['CPF'] : '');
+$marca = isset($data['marca']) ? $data['marca'] : (isset($data['data']['MARCA']) ? $data['data']['MARCA'] : '');
+$placa = isset($data['placa']) ? $data['placa'] : (isset($data['data']['PLACA']) ? $data['data']['PLACA'] : '');
+$ano = isset($data['ano']) ? $data['ano'] : (isset($data['data']['ANO']) ? $data['data']['ANO'] : '');
+$gclid = isset($data['gclid']) ? $data['gclid'] : (isset($data['data']['GCLID_FLD']) ? $data['data']['GCLID_FLD'] : '');
 $endereco = isset($data['endereco']) ? $data['endereco'] : '';
 $cidade = isset($data['cidade']) ? $data['cidade'] : '';
 $estado = isset($data['estado']) ? $data['estado'] : '';
