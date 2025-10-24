@@ -13,16 +13,16 @@ $environment = 'development';
 
 // URLs dos endpoints de desenvolvimento
 $DEV_WEBHOOK_URLS = [
-    'travelangels' => 'https://bpsegurosimediato.com.br/dev/webhooks/add_travelangels.php',
-    'octadesk' => 'https://bpsegurosimediato.com.br/dev/webhooks/add_webflow_octa.php',
+    'travelangels' => 'https://bpsegurosimediato.com.br/dev/webhooks/add_travelangels_dev.php',
+    'octadesk' => 'https://bpsegurosimediato.com.br/dev/webhooks/add_webflow_octa_dev.php',
     'collect_chat' => 'https://bpsegurosimediato.com.br/dev/webhooks/add_collect_chat.php',
     'health' => 'https://bpsegurosimediato.com.br/dev/health.php'
 ];
 
 // Secret keys para desenvolvimento (usando secrets reais do Webflow)
 $DEV_WEBFLOW_SECRETS = [
-    'travelangels' => '888931809d5215258729a8df0b503403bfd300f32ead1a983d95a6119b166142',
-    'octadesk' => '1dead60b2edf3bab32d8084b6ee105a9458c5cfe282e7b9d27e908f5a6c40291',
+    'travelangels' => 'b2eaccc6360243534828bec688e6f719565d912f11bc1fb2d718417de07a200b',
+    'octadesk' => '9ce84b44c92ad0130999a4142eb66391be2215f68c5b413722439a59d5183ade',
     'collect_chat' => '1601e39b8b4940a5ac7a49b80c8f05571ef6d408908b76b76d314dcdbe061a45'
 ];
 
@@ -97,7 +97,7 @@ $DEV_COLLECT_CHAT_CONFIG = [
 
 // Configurações específicas para TravelAngels
 $DEV_TRAVELANGELS_CONFIG = [
-    'source' => 'Webflow Dev',
+    'source' => 'Site', // ✅ Valor válido no EspoCRM
     'webpage' => 'bpsegurosimediato.com.br',
     'log_file' => 'travelangels_dev.txt',
     'create_opportunity' => true,

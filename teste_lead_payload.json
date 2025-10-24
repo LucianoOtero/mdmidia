@@ -1,0 +1,17 @@
+{
+    "firstName": "TESTE CURL PRODUCAO",
+    "emailAddress": "teste.curl.producao@teste.com",
+    "cCelular": "11999999999",
+    "addressPostalCode": "01234567",
+    "addressCity": "",
+    "addressState": "",
+    "addressCountry": "Brasil",
+    "addressStreet": "",
+    "cCpftext": "12345678901",
+    "cMarca": "Honda",
+    "cPlaca": "ABC1234",
+    "cAnoMod": "2023",
+    "cGclid": "gclid_teste_curl",
+    "cWebpage": "mdmidia.com.br",
+    "source": "Site"
+}
